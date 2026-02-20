@@ -1,4 +1,4 @@
-import { MessageSquare, Target, BarChart3, Settings, Wallet } from "lucide-react";
+import { MessageSquare, Target, BarChart3, Settings, Wallet, LogOut } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -13,7 +13,9 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const menuItems = [
   { title: "Chat", url: "/", icon: MessageSquare, description: "Converse com seu agente" },
@@ -25,6 +27,7 @@ const menuItems = [
 export function AppSidebar() {
   const location = useLocation();
   const { state } = useSidebar();
+  const { user, signOut } = useAuth();
   const isCollapsed = state === "collapsed";
 
   return (
@@ -75,14 +78,24 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-4 space-y-3">
         {!isCollapsed && (
           <div className="rounded-lg bg-accent/50 p-3">
-            <p className="text-xs text-muted-foreground">
-              💡 Dica: Use o chat para registrar gastos de forma natural!
+            <p className="text-xs text-muted-foreground truncate">
+              {user?.email}
             </p>
           </div>
         )}
+        <Button
+          variant="ghost"
+          size={isCollapsed ? "icon" : "sm"}
+          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          onClick={signOut}
+          aria-label="Sair da conta"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!isCollapsed && <span className="ml-2">Sair</span>}
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );

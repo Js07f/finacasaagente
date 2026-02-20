@@ -1,4 +1,4 @@
-import { Moon, Sun, Monitor, Type, Bell, Shield, HelpCircle, Trash2 } from "lucide-react";
+import { Moon, Sun, Monitor, Type, Bell, Shield, HelpCircle, Trash2, LogOut } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -23,18 +23,24 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 export default function Settings() {
   const { theme, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
 
-  const handleClearData = () => {
-    localStorage.removeItem("transactions");
-    localStorage.removeItem("goals");
-    localStorage.removeItem("chatMessages");
+  const handleClearData = async () => {
+    if (!user) return;
+    await Promise.all([
+      supabase.from("transactions").delete().eq("user_id", user.id),
+      supabase.from("financial_goals").delete().eq("user_id", user.id),
+      supabase.from("chat_messages").delete().eq("user_id", user.id),
+    ]);
     toast({
       title: "Dados limpos",
-      description: "Todos os seus dados foram removidos. Recarregue a página para ver as alterações.",
+      description: "Todos os seus dados foram removidos.",
     });
     window.location.reload();
   };
@@ -257,6 +263,30 @@ export default function Settings() {
         </CardContent>
       </Card>
 
+      {/* Account */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <LogOut className="h-5 w-5" />
+            Conta
+          </CardTitle>
+          <CardDescription>Informações da sua conta</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-base">Email</Label>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
+            </div>
+          </div>
+          <Separator />
+          <Button variant="destructive" className="w-full" onClick={signOut}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Sair da conta
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Version */}
       <div className="text-center text-sm text-muted-foreground pb-6">
         <p>FinançasPro v1.0.0</p>
@@ -265,3 +295,4 @@ export default function Settings() {
     </div>
   );
 }
+
